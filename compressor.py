@@ -131,7 +131,6 @@ class TextCompressor:
 # Example usage:
 model_name = "Tereveni-AI/gpt2-124M-uk-fiction"
 text_compressor = TextCompressor(model_name)
-print(type(COMPRESS_MODE))
 
 while (True):
     command = input('>>>')
