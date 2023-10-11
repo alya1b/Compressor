@@ -1,3 +1,6 @@
+import os
+import zipfile
+from zipfile import ZipFile
 import re
 from transformers import AlbertTokenizer, GPT2LMHeadModel
 import torch
@@ -6,6 +9,8 @@ PREDICT_WINDOW = 10000
 NUM_WORDS = 100
 SHOW_TOKENS = True
 SHOW_PREDICTION = True
+COMPRESS_LEVEL = 9
+COMPRESS_MODE = zipfile.ZIP_DEFLATED
 
 class TextCompressor:
     def __init__(self, model_name):
@@ -126,13 +131,18 @@ class TextCompressor:
 # Example usage:
 model_name = "Tereveni-AI/gpt2-124M-uk-fiction"
 text_compressor = TextCompressor(model_name)
+print(type(COMPRESS_MODE))
 
 while (True):
     command = input('>>>')
     if command == "stop":
         break
     if command == "help":
-        print("stop\ncompress file_name\ndecompress file_name")
+        print("stop")
+        print("zip file_name")
+        print("compress file_name")
+        print("zip_compress file_name")
+        print("decompress file_name")
         continue
     filename = input('Enter a file name: ')
     try:
@@ -150,6 +160,12 @@ while (True):
         in_file.close()
 
     input_size = len(input_text)
+    if command == "zip":
+        bold_filename, file_extension = os.path.splitext(filename)
+        with ZipFile(bold_filename + '.zip', 'w', compression = COMPRESS_MODE, compresslevel=COMPRESS_LEVEL) as zip:
+            zip.writestr(filename, input_text)
+            print("File was zipped")
+
     if command == "compress":
         with open("(compressed)" + filename, 'w') as out_file:
             compressed_text = text_compressor.compress(input_text)
@@ -157,6 +173,14 @@ while (True):
             out_file.write(compressed_text)
             output_size = len(compressed_text)
             print("Compressing status: {:%}".format((input_size - output_size)/input_size))
+    if command == "zip_compress":
+        bold_filename, file_extension = os.path.splitext(filename)
+        with ZipFile(bold_filename + '.zip', 'w', compression = COMPRESS_MODE, compresslevel=COMPRESS_LEVEL) as zip:
+            compressed_text = text_compressor.compress(input_text)
+            print("Compressed text: ", compressed_text)
+            output_size = len(compressed_text)
+            zip.writestr("(compressed)" + filename, compressed_text)
+            print("Compressing status: {:%}".format((input_size - output_size) / input_size))
 
     if command == "decompress":
         with open("(decompressed)" + filename, 'w') as out_file:
